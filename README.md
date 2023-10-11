@@ -5,6 +5,8 @@ Project name - Netflix Clone App
     • Scalability – in case if we have large number of users or requests, a distributed system allows to scale different components independently.
     • Fault Tolerance – In distributive system, a failure will not affect the entire system.
     • Maintainability – we can maintain or update one microservice without impacting any other microservice.
+
+A real world example is Netflix which is based on microservices.
 ***
 ### 2. Define service boundaries
 ![](Architecture_Diagram_PAD.png)
@@ -35,6 +37,8 @@ For the User Authentication Service:
          * Reliable and robust relational database for structured user data management, including profiles, credentials, and authentication tokens.
 ***
 ### 4. Design Data Management:
+TO BE MADE - Netflix business logic 
+
 Data format that will be managed will be JSON format. User microservice will have the following endpoints:
 * Register User \
 Endpoint: 'POST/ api/users/register'\
@@ -97,6 +101,21 @@ Request body:
     Response body:\
   Status 200 OK with a list of recommended content OR Status 401 Unauthorized if token is invalid
   
+* Like or Dislike Content
+Endpoint: 'POST api/content/:contentId'/like\
+Description: Allows a user to like or dislike a specific piece of content.\
+Request body:
+```
+{
+  "action": "like"  // or "dislike"
+}
+```
+Response body:
+    Status 200 OK if the action was successful OR
+    Status 401 Unauthorized if token is invalid OR
+    Status 404 Not Found if content with the specified ID does not exist
+
+
 ***
 ### 5. Deployment and Scaling:
 To deploy my app I will use Docker.

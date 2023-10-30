@@ -1,11 +1,12 @@
 var express = require('express');
-var router = express.Router();
+const router = express.Router();
+const axios = require('axios');
 const Interaction = require('../models/interactionModel');
 const CommentInteraction = require('../models/commentInteractionModel')
 
 // handling logging when a user views a piece of content
 router.post('/interactions/view', async (req, res) => {
-  const { userId, contentId} = req.body;
+  const { userId, contentId } = req.body;
 
   try {
     const interaction = new Interaction({
@@ -73,6 +74,27 @@ router.post('/interactions/add-to-favorites', async (req, res) => {
     return res.json({ message: 'Add-to-favorites interaction logged successfully' });
   } catch (error) {
     return res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+router.get('/interactions', async (req, res) => {
+    try {
+      const interactions = await Interaction.find();
+      res.status(200).json(interactions);
+    } catch (error) {
+      res.status(404).json({message: error.message});
+    }
+});
+
+router.get('/receive-interactions/:userId', async (req, res) => {
+  const { userId } = req.params;
+  try {
+    const interactions = await Interaction.find({ userId });
+
+    const uniqueContentIds = [...new Set(interactions.map(interaction => interaction.contentId))];
+    res.json({ contentIds : uniqueContentIds});
+  } catch (error) {
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 });
 

@@ -21,7 +21,8 @@ db.once('open', () => {
   console.log('Connected to MongoDB');
 });
 
-var interactionsRouter = require('./src/routes/interactions');
+const interactionsRouter = require('./src/routes/interactions');
+const status = require('./src/routes/status')
 
 app.use(logger('dev'));
 app.use(express.json());
@@ -30,6 +31,7 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', interactionsRouter);
+app.use('/', status);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

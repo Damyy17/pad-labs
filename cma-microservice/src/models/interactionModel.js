@@ -22,7 +22,10 @@ const interactionSchema = new Schema({
 });
 
 // unique interactions
-interactionSchema.index({ userId: 1, contentId: 1, interactionType: 1 }, { unique: true });
+interactionSchema.index(
+    { userId: 1, contentId: 1, interactionType: 1 }, 
+    { unique: true }
+  );
 
 const Interaction = mongoose.model('Interaction', interactionSchema);
 

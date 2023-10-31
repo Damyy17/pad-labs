@@ -36,10 +36,13 @@ router.get('/recommendations/:userId', async (req, res) => {
   try {
     const interactionsResponse = await axios.get(`http://localhost:3000/receive-interactions/${userId}`);
     const contentIds = interactionsResponse.data.contentIds;
-    console.log(`ContentIds from cma service - ${contentIds}`);
+    // console.log(`ContentIds from cma service - ${contentIds}`);
+
+    //check if recommendation exists
+    const existingRecommendation = await Recommendation.findOne({userId});
 
     const contentRecommendations = [];
-    console.log("Generating of content \n");
+    // console.log("Generating of content \n");
     for (const contentId of contentIds) {
       // finding the content by contentId to get its genre
       const content = await Content.findOne({contentId});
@@ -59,16 +62,21 @@ router.get('/recommendations/:userId', async (req, res) => {
       }
     }
 
-    // saving generetated recommendations to database
-    const recommendationModel = new Recommendation({
-      recommendationId: Date.now() + Math.floor(Math.random() * 1000), 
-      userId: userId,
-      recommendations: contentRecommendations
-    });
-    console.log(recommendationModel);
-    await recommendationModel.save();
-
-    res.json(recommendationModel);
+    if(existingRecommendation) {
+      existingRecommendation.recommendations = contentRecommendations;
+      await existingRecommendation.save();
+      res.json(existingRecommendation);
+    } else {
+      // saving new generetated recommendations to database
+      const recommendationModel = new Recommendation({
+        recommendationId: Date.now() + Math.floor(Math.random() * 1000), 
+        userId: userId,
+        recommendations: contentRecommendations
+      });
+      // console.log(recommendationModel);
+      await recommendationModel.save();
+      res.json(recommendationModel);
+    }
   } catch (error) {
     res.status(500).json({ error: 'Internal Server Error' });
   }

@@ -1,8 +1,8 @@
-FROM node:20
+FROM node:21
 
-WORKDIR /usr/src/app
+WORKDIR /app
 
-COPY package*.json ./
+COPY ["package*.json", "package-lock.json", "./"]
 
 RUN npm install
 
@@ -10,4 +10,4 @@ COPY . .
 
 EXPOSE 4000
 
-CMD ["npm start", "app.js"]
+CMD npm run start

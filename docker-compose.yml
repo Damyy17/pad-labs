@@ -1,0 +1,51 @@
+version: '3'
+
+networks:
+  my_network:
+    driver: bridge
+
+services:
+  gateway:
+    image: gateway
+    ports:
+      - "5050:5050"
+    environment:
+      cma_host: http://localhost:3000
+      cr_host: http://localhosy:4000
+    depends_on:
+      - cma
+      - cr
+    networks:
+      - my_network
+
+  cma:
+    image: cmamicroservice
+    # deploy:
+    #   mode: replicated
+    #   replicas: 3
+    ports:
+      - "3000:3000"
+    networks:
+      - my_network
+
+  cr:
+    image: contentrecomendationmicroservice
+    # deploy:
+    #   mode: replicated
+    #   replicas: 3
+    ports:
+      - "4000:4000"
+    networks:
+      - my_network
+
+  # nginx:
+  #   image: nginx:latest
+  #   ports:
+  #     - "80:80"
+  #   volumes:
+  #     - ./nginx.conf:/etc/nginx/cma.conf:ro
+  #     - ./nginx.conf:/etc/nginx/cr.conf:ro
+  #   depends_on:
+  #     - cma
+  #     - cr
+

@@ -4,7 +4,7 @@ const mongoose = require('mongoose');
 const db = mongoose.connection;
 
 // status route endpoint
-router.get('/status', (req, res) => {
+router.get('/cr/status', (req, res) => {
     const dbStatus = db.readyState === 1 ? 'Connected' : 'Disconnected';
     const status = {
         service: 'Content Recommendation Service',

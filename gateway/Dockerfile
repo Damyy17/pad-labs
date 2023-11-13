@@ -11,4 +11,4 @@ COPY . .
 
 EXPOSE 5050
 
-CMD ["python", "flaskr/app.py", "--host=0.0.0.0"]
+CMD ["python", "flaskr/app.py"]

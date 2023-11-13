@@ -8,8 +8,14 @@ cache = Cache(app, config={'CACHE_TYPE': 'simple'})
 
 
 # Configuration for microservice endpoints
-CMA_SERVICE_URL = "http://localhost:3000" 
-CR_SERVICE_URL = "http://localhost:4000" 
+CMA_SERVICE_URL = "http://cma:3000" 
+CR_SERVICE_URL = "http://cr:4000" 
+
+#health check endpoint 
+@app.route('/health', methods=['GET'])
+def get_health():
+    return jsonify({"status": "ok"})
+
 
 # routes for the cma service
 @app.route('/cma/status', methods=['GET'])
@@ -116,4 +122,4 @@ def delete_content(contentId):
 
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5050)
+    app.run(debug=True, port=5050, host="0.0.0.0")

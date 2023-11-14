@@ -7,6 +7,12 @@ router.post('/contents', async (req, res) => {
     const {contentId, title, rating, genre, cast, release_year } = req.body;
   
     try {
+        // checking if the content with the same contentId already exists
+        const existingContent = await Content.findOne({ contentId });
+
+        if (existingContent) {
+            return res.status(400).json({ error: 'Content with the same contentId already exists.' });
+        }
         const content = new Content({
             contentId,
             title,

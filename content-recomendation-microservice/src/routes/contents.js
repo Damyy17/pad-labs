@@ -15,10 +15,10 @@ router.post('/contents', async (req, res) => {
             cast,
             release_year 
         });
-      await content.save();
-      return res.json({ message: 'Content added succesfully.' });
+        await content.save();
+        return res.status(201).json({ message: 'Content added succesfully.' });
     } catch (error) {
-      return res.status(500).json({ error: 'Internal Server Error' });
+        return res.status(500).json({ error: 'Internal Server Error' });
     }
 });
 
@@ -67,7 +67,7 @@ router.put('/contents/:contentId', async (req, res) => {
 
         await content.save();
 
-        return res.json({ message: 'Content updated successfully.' });
+        return res.status(201).json({ message: 'Content updated successfully.' });
     } catch (error) {
         return res.status(500).json({ error: 'Internal Server Error' });
     }
@@ -86,7 +86,7 @@ router.delete('/contents/:contentId', async (req, res) => {
 
         await content.deleteOne();
 
-        return res.json({ message: 'Content deleted successfully.' });
+        return res.status(200).json({ message: 'Content deleted successfully.' });
     } catch (error) {
         return res.status(500).json({ error: 'Internal Server Error' });
     }

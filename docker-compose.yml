@@ -20,32 +20,32 @@ services:
 
   cma:
     image: cmamicroservice
-    # deploy:
-    #   mode: replicated
-    #   replicas: 3
+    deploy:
+      mode: replicated
+      replicas: 3
     ports:
-      - "3000:3000"
+      - "3000-3002:3000"
     networks:
       - my_network
 
   cr:
     image: contentrecomendationmicroservice
-    # deploy:
-    #   mode: replicated
-    #   replicas: 3
+    deploy:
+      mode: replicated
+      replicas: 3
     ports:
-      - "4000:4000"
+      - "4000-4002:4000"
     networks:
       - my_network
 
-  # nginx:
-  #   image: nginx:latest
-  #   ports:
-  #     - "80:80"
-  #   volumes:
-  #     - ./nginx.conf:/etc/nginx/cma.conf:ro
-  #     - ./nginx.conf:/etc/nginx/cr.conf:ro
-  #   depends_on:
-  #     - cma
-  #     - cr
+  nginx:
+    image: nginx:latest
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/cma.conf:ro
+      - ./nginx.conf:/etc/nginx/cr.conf:ro
+    depends_on:
+      - cma
+      - cr
 

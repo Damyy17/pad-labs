@@ -1,15 +1,18 @@
 from flask import Flask, jsonify, request, redirect
 from flask_caching import Cache
+from circuitbreaker import circuit
 import requests
 
 app = Flask(__name__)
 # initializing Flask Cache
 cache = Cache(app, config={'CACHE_TYPE': 'simple'})
 
-
+# CMA_SERVICE_URL = "http://localhost:3000" 
+# CR_SERVICE_URL = "http://localhost:4000" 
 # Configuration for microservice endpoints
 CMA_SERVICE_URL = "http://cma:3000" 
 CR_SERVICE_URL = "http://cr:4000" 
+
 
 #health check endpoint 
 @app.route('/health', methods=['GET'])
@@ -28,6 +31,7 @@ def get_status_cma():
     
 
 @app.route('/interactions/view', methods=['POST'])
+@circuit(failure_threshold=5, recovery_timeout=30)
 def log_view_interaction():
     interaction_data = request.get_json()
     response = requests.post(f"{CMA_SERVICE_URL}/interactions/view", json=interaction_data)
@@ -35,6 +39,7 @@ def log_view_interaction():
 
 
 @app.route('/interactions/like', methods=['POST'])
+@circuit(failure_threshold=5, recovery_timeout=30)
 def log_like_interaction():
     interaction_data = request.get_json()
     response = requests.post(f"{CMA_SERVICE_URL}/interactions/like", json=interaction_data)
@@ -74,6 +79,7 @@ def get_status_cr():
 
 @app.route('/recommendations/<userId>', methods=['GET'])
 @cache.cached(timeout = 60)
+@circuit(failure_threshold=5, recovery_timeout=30)
 def get_recommendations(userId):
     response = requests.get(f"{CR_SERVICE_URL}/recommendations/{userId}")
     return response.json(), response.status_code

@@ -5,6 +5,13 @@ networks:
     driver: bridge
 
 services:
+  coordinator:
+    image: coordinator
+    ports:
+      - "6060:6060"
+    networks:
+      - my_network
+
   gateway:
     image: gateway
     ports:
@@ -48,4 +55,16 @@ services:
     depends_on:
       - cma
       - cr
+
+  prometheus:
+    image: prom/prometheus
+    restart: unless-stopped
+    volumes:
+      - ./prometheus:/etc/prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - my_network
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
 

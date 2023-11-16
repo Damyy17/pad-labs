@@ -1,11 +1,14 @@
 from flask import Flask, jsonify, request, redirect
 from flask_caching import Cache
 from circuitbreaker import circuit
+from prometheus_flask_exporter import PrometheusMetrics
 import requests
 
 app = Flask(__name__)
 # initializing Flask Cache
 cache = Cache(app, config={'CACHE_TYPE': 'simple'})
+# metrics prometheus
+metrics = PrometheusMetrics(app)
 
 # CMA_SERVICE_URL = "http://localhost:3000" 
 # CR_SERVICE_URL = "http://localhost:4000" 
@@ -128,4 +131,4 @@ def delete_content(contentId):
 
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5050, host="0.0.0.0")
+    app.run(debug=False, port=5050, host="0.0.0.0")

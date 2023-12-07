@@ -1,8 +1,13 @@
 version: '3'
 
 networks:
-  my_network:
+  example-network:
+    name: example-network
     driver: bridge
+    # ipam:
+    #   driver: default
+    #   config:
+    #     - subnet: 172.16.238.0/24
 
 services:
   coordinator:
@@ -10,20 +15,20 @@ services:
     ports:
       - "6060:6060"
     networks:
-      - my_network
+      - example-network
 
   gateway:
     image: gateway
     ports:
       - "5050:5050"
     environment:
-      cma_host: http://localhost:3000
+      cma_host: http://localhost:3010
       cr_host: http://localhost:4000
     depends_on:
       - cma
       - cr
     networks:
-      - my_network
+      - example-network
 
   cma:
     image: cmamicroservice
@@ -31,9 +36,9 @@ services:
       mode: replicated
       replicas: 3
     ports:
-      - "3000-3002:3000"
+      - "3010-3012:3010"
     networks:
-      - my_network
+      - example-network
 
   cr:
     image: contentrecomendationmicroservice
@@ -43,15 +48,15 @@ services:
     ports:
       - "4000-4002:4000"
     networks:
-      - my_network
+      - example-network
 
   nginx:
     image: nginx:latest
     ports:
       - "80:80"
     volumes:
-      - ./nginx.conf:/etc/nginx/cma.conf:ro
-      - ./nginx.conf:/etc/nginx/cr.conf:ro
+      - ./nginx:/etc/nginx/cma.conf:ro
+      - ./nginx:/etc/nginx/cr.conf:ro
     depends_on:
       - cma
       - cr
@@ -64,7 +69,21 @@ services:
     ports:
       - "9090:9090"
     networks:
-      - my_network
+      - example-network
+      # my_network:
+      #  ipv4_address: 172.16.238.11
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
+    
+
+  grafana:
+    image: grafana/grafana-enterprise
+    container_name: grafana
+    restart: unless-stopped
+    ports:
+     - '3000:3000'
+    networks:
+      - example-network
+    depends_on:
+      - prometheus
 

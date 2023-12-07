@@ -7,13 +7,20 @@ import requests
 app = Flask(__name__)
 # initializing Flask Cache
 cache = Cache(app, config={'CACHE_TYPE': 'simple'})
-# metrics prometheus
+
 metrics = PrometheusMetrics(app)
+# static information as metric
+metrics.info('app_info', 'Application info', version='1.0.3')
+
+by_path_counter = metrics.counter(
+    'by_path_counter', 'Request count by request paths',
+    labels={'path': lambda: request.path}
+)
 
 # CMA_SERVICE_URL = "http://localhost:3000" 
 # CR_SERVICE_URL = "http://localhost:4000" 
 # Configuration for microservice endpoints
-CMA_SERVICE_URL = "http://cma:3000" 
+CMA_SERVICE_URL = "http://cma:3010" 
 CR_SERVICE_URL = "http://cr:4000" 
 
 
@@ -63,6 +70,7 @@ def log_add_to_favorites_interaction():
     return response.json(), response.status_code
 
 
+@by_path_counter
 @app.route('/interactions', methods=['GET'])
 @cache.cached(timeout = 60)
 def get_all_interactions():
@@ -80,6 +88,7 @@ def get_status_cr():
         return jsonify({'error': str(e)}), 500
     
 
+@by_path_counter
 @app.route('/recommendations/<userId>', methods=['GET'])
 @cache.cached(timeout = 60)
 @circuit(failure_threshold=5, recovery_timeout=30)
@@ -88,6 +97,7 @@ def get_recommendations(userId):
     return response.json(), response.status_code
     
 
+@by_path_counter
 @app.route('/recommendations/<userId>/<contentId>', methods=['GET'])
 @cache.cached(timeout = 60)
 def get_content_from_recommendations(userId, contentId):

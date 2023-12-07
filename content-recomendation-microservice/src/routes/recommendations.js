@@ -35,7 +35,7 @@ router.get('/recommendations/:userId', async (req, res) => {
 
   try {
     // const interactionsResponse = await axios.get(`http://localhost:3000/receive-interactions/${userId}`);
-    const interactionsResponse = await axios.get(`http://cma:3000/receive-interactions/${userId}`);
+    const interactionsResponse = await axios.get(`http://cma:3010/receive-interactions/${userId}`);
     const contentIds = interactionsResponse.data.contentIds;
     // console.log(`ContentIds from cma service - ${contentIds}`);
 

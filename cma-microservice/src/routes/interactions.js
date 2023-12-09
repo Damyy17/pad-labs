@@ -98,6 +98,33 @@ router.get('/receive-interactions/:userId', async (req, res) => {
   }
 });
 
+// Compensating action for view interaction
+router.post('/interactions/view/compensate', async (req, res) => {
+  try {
+    const { userId, contentId } = req.body;
+
+    await Interaction.findOneAndDelete({ userId, contentId, interactionType: 'view' });
+
+    res.json({ message: 'Compensation for view interaction successful' });
+  } catch (error) {
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// Compensating action for comment interaction
+router.post('/interactions/comment/compensate', async (req, res) => {
+  try {
+    const { userId, contentId } = req.body;
+
+    await CommentInteraction.findOneAndDelete({ userId, contentId, interactionType: 'comment' });
+
+    res.json({ message: 'Compensation for comment interaction successful' });
+  } catch (error) {
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+
 
 module.exports = router;
 

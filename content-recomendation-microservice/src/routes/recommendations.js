@@ -4,6 +4,20 @@ const axios = require('axios');
 const Recommendation = require('../model/recommendationModel');
 const Content = require('../model/contentModel');
 
+
+// array of replica URLs for the CMA service
+const cmaReplicas = [
+  'http://cma:3010',
+  'http://cma2:3011',
+  'http://cma3:3012'
+];
+
+// Function to get a random replica URL
+function getRandomCMAReplica() {
+  return cmaReplicas[Math.floor(Math.random() * cmaReplicas.length)];
+}
+
+
 // Endpoint to get content from recommendations for a user
 router.get('/recommendations/:userId/:contentId', async (req, res) => {
   const { userId, contentId } = req.params;
@@ -35,7 +49,10 @@ router.get('/recommendations/:userId', async (req, res) => {
 
   try {
     // const interactionsResponse = await axios.get(`http://localhost:3000/receive-interactions/${userId}`);
-    const interactionsResponse = await axios.get(`http://cma:3010/receive-interactions/${userId}`);
+    // const interactionsResponse = await axios.get(`http://http://172.18.0.6/receive-interactions/${userId}`);
+    // const interactionsResponse = await axios.get(`http://cma:3010/receive-interactions/${userId}`);
+    const randomCMAReplica = getRandomCMAReplica();
+    const interactionsResponse = await axios.get(`${randomCMAReplica}/receive-interactions/${userId}`);
     const contentIds = interactionsResponse.data.contentIds;
     // console.log(`ContentIds from cma service - ${contentIds}`);
 

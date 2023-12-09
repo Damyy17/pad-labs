@@ -47,7 +47,7 @@ def get_status_cma():
     
 
 @app.route('/interactions/view', methods=['POST'])
-@circuit(failure_threshold=5, recovery_timeout=30)
+# @circuit(failure_threshold=5, recovery_timeout=30)
 def log_view_interaction():
     interaction_data = request.get_json()
     cma_url = next(cma_url_generator)
@@ -56,12 +56,23 @@ def log_view_interaction():
 
 
 @app.route('/interactions/like', methods=['POST'])
-@circuit(failure_threshold=5, recovery_timeout=30)
+# @circuit(failure_threshold=5, recovery_timeout=30)
 def log_like_interaction():
     interaction_data = request.get_json()
     cma_url = next(cma_url_generator)
     response = requests.post(f"{cma_url}/interactions/like", json=interaction_data)
     return response.json(), response.status_code
+
+@app.route('/interactions/view/compensate', methods=['POST'])
+def compensate_view_interaction_endpoint():
+    try:
+        interaction_data = request.get_json()
+        cma_url = next(cma_url_generator)
+        requests.post(f"{cma_url}/interactions/view/compensate", json=interaction_data)
+
+        return jsonify({'message': 'Compensation for View Interaction completed successfully'}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 
 @app.route('/interactions/comment', methods=['POST'])
@@ -70,6 +81,18 @@ def log_comment_interaction():
     cma_url = next(cma_url_generator)
     response = requests.post(f"{cma_url}/interactions/comment", json=interaction_data)
     return response.json(), response.status_code
+
+
+@app.route('/interactions/comment/compensate', methods=['POST'])
+def compensate_comment_interaction_endpoint():
+    try:
+        interaction_data = request.get_json()
+        cma_url = next(cma_url_generator)
+        requests.post(f"{cma_url}/interactions/comment/compensate", json=interaction_data)
+
+        return jsonify({'message': 'Compensation for Comment Interaction completed successfully'}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 
 @app.route('/interactions/add-to-favorites', methods=['POST'])
@@ -103,7 +126,7 @@ def get_status_cr():
 @by_path_counter
 @app.route('/recommendations/<userId>', methods=['GET'])
 @cache.cached(timeout = 60)
-@circuit(failure_threshold=5, recovery_timeout=30)
+# @circuit(failure_threshold=5, recovery_timeout=30)
 def get_recommendations(userId):
     cr_url = next(cr_url_generator)
     response = requests.get(f"{cr_url}/recommendations/{userId}")

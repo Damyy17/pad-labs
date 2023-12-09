@@ -14,15 +14,18 @@ def saga_orchestrator():
 
         # Step 1: Log View Interaction
         interaction_service_url = 'http://gateway:5050/interactions/view'
-        requests.post(interaction_service_url, json={'userId': userId, 'contentId': contentId})
+        response_view = requests.post(interaction_service_url, json={'userId': userId, 'contentId': contentId})
+        response_view.raise_for_status()
 
         # Step 2: Log Comment Interaction
         interaction_service_url = 'http://gateway:5050/interactions/comment'
-        requests.post(interaction_service_url, json={'userId': userId, 'contentId': contentId, 'comment': comment})
+        response_comment = requests.post(interaction_service_url, json={'userId': userId, 'contentId': contentId, 'comment': comment})
+        response_comment.raise_for_status()
 
         # Step 3: Generate Recommendations
         recommendation_service_url = f'http://gateway:5050/recommendations/{userId}'
         recommendations_response = requests.get(recommendation_service_url)
+        recommendations_response.raise_for_status()
         recommendations = recommendations_response.json()
 
         print('Saga completed successfully')
@@ -35,12 +38,14 @@ def saga_orchestrator():
         # Compensate for Comment Interaction
         compensate_comment_interaction(userId, contentId, comment)
 
-        return jsonify({'error': str(e)}), 500
+        print(f'Saga failed with error: {str(e)}')
+        return jsonify({'message': 'Saga failed with error:','error': str(e)}), 500
     
 # Function to compensate for View Interaction
 def compensate_view_interaction(userId, contentId):
     interaction_service_url = 'http://gateway:5050/interactions/view/compensate'
     requests.post(interaction_service_url, json={'userId': userId, 'contentId': contentId})
+    
 
 # Function to compensate for Comment Interaction
 def compensate_comment_interaction(userId, contentId, comment):

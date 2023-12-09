@@ -4,10 +4,10 @@ networks:
   example-network:
     name: example-network
     driver: bridge
-    # ipam:
-    #   driver: default
-    #   config:
-    #     - subnet: 172.16.238.0/24
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.18.0.0/16
 
 services:
   coordinator:
@@ -18,7 +18,7 @@ services:
       - example-network
 
   gateway:
-    image: gateway
+    image: gateway:latest
     ports:
       - "5050:5050"
     environment:
@@ -31,24 +31,77 @@ services:
       - example-network
 
   cma:
-    image: cmamicroservice
-    deploy:
-      mode: replicated
-      replicas: 3
+    image: cmamicroservice:latest
+    # deploy:
+    #   mode: replicated
+    #   replicas: 3
     ports:
-      - "3010-3012:3010"
+      - "3010:3010"
     networks:
       - example-network
+      # example-network:
+      #    ipv4_address: 172.18.0.6
+    environment:
+      - PORT=3010
+
+  cma2:
+    image: cmamicroservice:latest
+    ports:
+      - "3011:3011"
+    networks:
+      - example-network
+      # example-network:
+      #   ipv4_address: 172.18.0.7
+    environment:
+      - PORT=3011
+
+  cma3:
+    image: cmamicroservice:latest
+    ports:
+      - "3012:3012"
+    networks:
+      - example-network
+      # example-network:
+      #   ipv4_address: 172.18.0.8
+    environment:
+      - PORT=3012
 
   cr:
     image: contentrecomendationmicroservice
-    deploy:
-      mode: replicated
-      replicas: 3
+    # deploy:
+    #   mode: replicated
+    #   replicas: 3
     ports:
-      - "4000-4002:4000"
+      - "4000:4000"
     networks:
       - example-network
+      # example-network:
+      #    ipv4_address: 172.18.0.9
+    environment:
+      - PORT=4000
+
+  cr2:
+    image: contentrecomendationmicroservice
+    ports:
+      - "4001:4001"
+    networks:
+      - example-network
+      # example-network:
+      #    ipv4_address: 172.18.0.10
+    environment:
+      - PORT=4001
+
+  cr3:
+    image: contentrecomendationmicroservice
+    ports:
+      - "4002:4002"
+    networks:
+      - example-network
+      # example-network:
+      #    ipv4_address: 172.18.0.11
+    environment:
+      - PORT=4002
+
 
   nginx:
     image: nginx:latest
@@ -57,9 +110,7 @@ services:
     volumes:
       - ./nginx:/etc/nginx/cma.conf:ro
       - ./nginx:/etc/nginx/cr.conf:ro
-    depends_on:
-      - cma
-      - cr
+      
 
   prometheus:
     image: prom/prometheus
@@ -70,12 +121,9 @@ services:
       - "9090:9090"
     networks:
       - example-network
-      # my_network:
-      #  ipv4_address: 172.16.238.11
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
     
-
   grafana:
     image: grafana/grafana-enterprise
     container_name: grafana

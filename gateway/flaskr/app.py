@@ -3,6 +3,7 @@ from flask_caching import Cache
 from circuitbreaker import circuit
 from prometheus_flask_exporter import PrometheusMetrics
 import requests
+from load_balancer import get_healthy_cma_url, get_healthy_cr_url, cma_url_generator, cr_url_generator
 
 app = Flask(__name__)
 # initializing Flask Cache
@@ -20,8 +21,12 @@ by_path_counter = metrics.counter(
 # CMA_SERVICE_URL = "http://localhost:3000" 
 # CR_SERVICE_URL = "http://localhost:4000" 
 # Configuration for microservice endpoints
-CMA_SERVICE_URL = "http://cma:3010" 
-CR_SERVICE_URL = "http://cr:4000" 
+# CMA_SERVICE_URL = "http://cma" 
+# CR_SERVICE_URL = "http://cr:4000" 
+
+# load balancer implementation
+CMA_SERVICE_URLS = ["http://cma:3010", "http://cma2:3011", "http://cma3:3012"]
+CR_SERVICE_URLS = ["http://cr:4000", "http://cr2:4001", "http://cr3:4002"]
 
 
 #health check endpoint 
@@ -34,7 +39,8 @@ def get_health():
 @app.route('/cma/status', methods=['GET'])
 def get_status_cma():
     try:
-        response = requests.get(f'{CMA_SERVICE_URL}/cma/status')
+        cma_url = next(cma_url_generator)
+        response = requests.get(f'{cma_url}/status')
         return jsonify(response.json())
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -44,7 +50,8 @@ def get_status_cma():
 @circuit(failure_threshold=5, recovery_timeout=30)
 def log_view_interaction():
     interaction_data = request.get_json()
-    response = requests.post(f"{CMA_SERVICE_URL}/interactions/view", json=interaction_data)
+    cma_url = next(cma_url_generator)
+    response = requests.post(f"{cma_url}/interactions/view", json=interaction_data)
     return response.json(), response.status_code
 
 
@@ -52,21 +59,24 @@ def log_view_interaction():
 @circuit(failure_threshold=5, recovery_timeout=30)
 def log_like_interaction():
     interaction_data = request.get_json()
-    response = requests.post(f"{CMA_SERVICE_URL}/interactions/like", json=interaction_data)
+    cma_url = next(cma_url_generator)
+    response = requests.post(f"{cma_url}/interactions/like", json=interaction_data)
     return response.json(), response.status_code
 
 
 @app.route('/interactions/comment', methods=['POST'])
 def log_comment_interaction():
     interaction_data = request.get_json()
-    response = requests.post(f"{CMA_SERVICE_URL}/interactions/comment", json=interaction_data)
+    cma_url = next(cma_url_generator)
+    response = requests.post(f"{cma_url}/interactions/comment", json=interaction_data)
     return response.json(), response.status_code
 
 
 @app.route('/interactions/add-to-favorites', methods=['POST'])
 def log_add_to_favorites_interaction():
     interaction_data = request.get_json()
-    response = requests.post(f"{CMA_SERVICE_URL}/interactions/add-to-favorites", json=interaction_data)
+    cma_url = next(cma_url_generator)
+    response = requests.post(f"{cma_url}/interactions/add-to-favorites", json=interaction_data)
     return response.json(), response.status_code
 
 
@@ -74,7 +84,8 @@ def log_add_to_favorites_interaction():
 @app.route('/interactions', methods=['GET'])
 @cache.cached(timeout = 60)
 def get_all_interactions():
-    response = requests.get(f"{CMA_SERVICE_URL}/interactions")
+    cma_url = get_healthy_cma_url(cma_url_generator)
+    response = requests.get(f"{cma_url}/interactions")
     return response.json(), response.status_code
 
 
@@ -82,7 +93,8 @@ def get_all_interactions():
 @app.route('/cr/status', methods=['GET'])
 def get_status_cr():
     try:
-        response = requests.get(f'{CR_SERVICE_URL}/cr/status')
+        cr_url = next(cr_url_generator)
+        response = requests.get(f'{cr_url}/status')
         return jsonify(response.json())
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -93,7 +105,8 @@ def get_status_cr():
 @cache.cached(timeout = 60)
 @circuit(failure_threshold=5, recovery_timeout=30)
 def get_recommendations(userId):
-    response = requests.get(f"{CR_SERVICE_URL}/recommendations/{userId}")
+    cr_url = next(cr_url_generator)
+    response = requests.get(f"{cr_url}/recommendations/{userId}")
     return response.json(), response.status_code
     
 
@@ -101,7 +114,8 @@ def get_recommendations(userId):
 @app.route('/recommendations/<userId>/<contentId>', methods=['GET'])
 @cache.cached(timeout = 60)
 def get_content_from_recommendations(userId, contentId):
-    response = requests.get(f"{CR_SERVICE_URL}/recommendations/{userId}/{contentId}")
+    cr_url = next(cr_url_generator)
+    response = requests.get(f"{cr_url}/recommendations/{userId}/{contentId}")
     return response.json(), response.status_code
 
 
@@ -109,34 +123,39 @@ def get_content_from_recommendations(userId, contentId):
 @app.route('/contents', methods=['POST'])
 def create_content():
     content_data = request.get_json()
-    response = requests.post(f"{CR_SERVICE_URL}/contents", json=content_data)
+    cr_url = get_healthy_cr_url(cr_url_generator)
+    response = requests.post(f"{cr_url}/contents", json=content_data)
     return response.json(), response.status_code
 
 
 @app.route('/contents', methods=['GET'])
 @cache.cached(timeout = 60)
 def get_all_contents():
-    response = requests.get(f"{CR_SERVICE_URL}/contents")
+    cr_url = next(cr_url_generator)
+    response = requests.get(f"{cr_url}/contents")
     return response.json(), response.status_code
 
 
 @app.route('/contents/<contentId>', methods=['GET'])
 @cache.cached(timeout = 60)
 def get_content(contentId):
-    response = requests.get(f"{CR_SERVICE_URL}/contents/{contentId}")
+    cr_url = next(cr_url_generator)
+    response = requests.get(f"{cr_url}/contents/{contentId}")
     return response.json(), response.status_code
 
 
 @app.route('/contents/<contentId>', methods=['PUT'])
 def update_content(contentId):
     content_data = request.get_json()
-    response = requests.put(f"{CR_SERVICE_URL}/contents/{contentId}", json=content_data)
+    cr_url = next(cr_url_generator)
+    response = requests.put(f"{cr_url}/contents/{contentId}", json=content_data)
     return response.json(), response.status_code
 
 
 @app.route('/contents/<contentId>', methods=['DELETE'])
 def delete_content(contentId):
-    response = requests.delete(f"{CR_SERVICE_URL}/contents/{contentId}")
+    cr_url = next(cr_url_generator)
+    response = requests.delete(f"{cr_url}/contents/{contentId}")
     return response.json(), response.status_code
 
 

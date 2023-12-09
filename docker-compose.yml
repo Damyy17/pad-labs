@@ -27,6 +27,7 @@ services:
     depends_on:
       - cma
       - cr
+      - redis-master
     networks:
       - example-network
 
@@ -134,4 +135,39 @@ services:
       - example-network
     depends_on:
       - prometheus
+
+  redis-master:
+    image: 'redis:latest'
+    command: ['redis-server', '--appendonly', 'yes']
+    volumes:
+      - ./redis-master-data:/data
+    ports:
+      - '6379:6379'
+    networks:
+      - example-network
+
+  redis-slave:
+    image: 'redis:latest'
+    command: ['redis-server', '--appendonly', 'yes', '--slaveof', 'redis-master', '6379']
+    volumes:
+      - ./redis-slave-data:/data
+    ports:
+      - '6380:6379'
+    depends_on:
+      - redis-master
+    networks:
+      - example-network
+
+  redis-slave2:
+    image: 'redis:latest'
+    command: ['redis-server', '--appendonly', 'yes', '--slaveof', 'redis-master', '6379']
+    volumes:
+      - ./redis-slave-data:/data
+    ports:
+      - '6381:6379'
+    depends_on:
+      - redis-master
+    networks:
+      - example-network
+
 

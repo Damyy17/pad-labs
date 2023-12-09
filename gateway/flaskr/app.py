@@ -7,7 +7,7 @@ from load_balancer import get_healthy_cma_url, get_healthy_cr_url, cma_url_gener
 
 app = Flask(__name__)
 # initializing Flask Cache
-cache = Cache(app, config={'CACHE_TYPE': 'simple'})
+cache = Cache(app, config={'CACHE_TYPE': 'redis', 'CACHE_REDIS_URL': 'redis://redis-master:6379/0'})
 
 metrics = PrometheusMetrics(app)
 # static information as metric
